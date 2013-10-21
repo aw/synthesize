@@ -1,0 +1,33 @@
+# Statsite role
+
+- name: Clone statsite from GitHub
+  git: >
+    repo=https://github.com/armon/statsite.git
+    dest={{ graphite_repos }}/statsite
+  tags:
+    - statsite
+    - repos
+
+- name: Build and install statsite
+  shell: >
+    chdir={{ graphite_repos }}/statsite
+    make && \
+      cp statsite /usr/local/sbin/ && \
+      cp sinks/graphite.py /usr/local/sbin/statsite-sink-graphite.py
+  tags:
+    - statsite
+    - install
+
+- name: Copy Statsite templates from Synthesize
+  copy: >
+    src=../templates/statsite/statsite.conf
+    dest=/etc/statsite.conf
+  tags:
+    - statsite
+    - config
+
+- name: Start statsite service
+  shell: /usr/local/sbin/statsite -f /etc/statsite.conf
+  tags:
+    - statsite
+    - services

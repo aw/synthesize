@@ -1,0 +1,207 @@
+# Graphite role
+
+- name: Check if graphite is already installed
+  stat: path={{ graphite_home }}
+  register: gd
+
+- name: Fail if it's already installed
+  fail: >
+    msg="Looks like you already have a Graphite installation in {{ graphite_home }}, aborting."
+  when: gd.stat.isdir is defined and gd.stat.isdir == true
+
+- name: Install graphite dependencies
+  apt: name={{ item }} state=latest
+  with_items:
+    - python-cairo
+    - python-django
+    - python-django-tagging
+    - python-twisted
+    - python-zope.interface
+    - fontconfig
+    - apache2
+    - libapache2-mod-wsgi
+    - python-pysqlite2
+    - python-simplejson
+    - python-memcache
+    - git-core
+    - collectd
+    - memcached
+    - gcc
+    - g++
+    - make
+    - scons
+  when: ansible_os_family == 'Debian'
+  tags:
+    - packages
+
+- name: Clone Graphite repos from GitHub
+  git: >
+    repo=https://github.com/graphite-project/{{ item }}
+    version={{ graphite_version }}
+    dest={{ graphite_repos }}/{{ item }}
+  with_items:
+    - whisper
+    - carbon
+    - graphite-web
+  tags:
+    - graphite
+    - repos
+
+- name: Build and install whisper
+  command: >
+    chdir={{ graphite_repos }}/whisper
+    python setup.py install
+  tags:
+    - graphite
+    - install
+
+- name: Build and install carbon
+  command: >
+    chdir={{ graphite_repos }}/carbon
+    python setup.py install
+  tags:
+    - graphite
+    - install
+
+- name: Build and install graphite-web
+  shell: >
+    chdir={{ graphite_repos }}/graphite-web
+    python check-dependencies.py &&
+      python setup.py install
+  tags:
+    - graphite
+    - install
+
+- name: Ensure examples dir exists
+  file: >
+    path={{ graphite_conf }}/examples
+    state=directory
+    mode=0755
+  tags:
+    - graphite
+    - config
+
+- name: Install configuration files for Graphite
+  shell: "mv {{ graphite_conf }}/*.example {{ graphite_conf }}/examples/"
+  tags:
+    - graphite
+    - config
+
+- name: Copy Graphite templates from Synthesize
+  copy: >
+    src=../templates/graphite/conf/{{ item }}
+    dest={{ graphite_conf }}/{{ item }}
+  with_items:
+    - carbon.conf
+    - graphite.wsgi
+    - graphTemplates.conf
+    - storage-aggregation.conf
+    - storage-schemas.conf
+  tags:
+    - graphite
+    - config
+
+- name: Copy Django templates from Synthesize
+  copy: >
+    src=../templates/graphite/webapp/{{ item }}
+    dest={{ graphite_home }}/webapp/graphite/{{ item }}
+  with_items:
+    - initial_data.json
+    - local_settings.py
+  tags:
+    - graphite
+    - config
+
+- name: Generate a not at all random secret key
+  shell: "date | md5sum | cut -d ' ' -f 1"
+  register: not_random_secret_key
+  tags:
+    - graphite
+    - secretkey
+
+- name: Set a random secret key
+  lineinfile: >
+    dest={{ graphite_home }}/webapp/graphite/local_settings.py
+    regexp="^SECRET_KEY ="
+    line="SECRET_KEY = '{{ not_random_secret_key.stdout }}'"
+    state=present
+  tags:
+    - graphite
+    - secretkey
+
+- name: Setup the Django database
+  shell: >
+    chdir={{ graphite_home }}/webapp/graphite
+    python manage.py syncdb --noinput
+  tags:
+    - graphite
+    - database
+
+- name: Set file permissions on database
+  file: >
+    path={{ graphite_storage }}/graphite.db
+    owner=www-data
+    group=www-data
+    mode=0640
+    state=file
+  tags:
+    - graphite
+    - database
+
+- name: Add carbon system user
+  user: >
+    name=carbon
+    comment="carbon user"
+    shell=/bin/false
+    home=/home/carbon
+    createhome=yes
+    state=present
+  tags:
+    - graphite
+    - user
+
+- name: Set permissions on graphite storage
+  file: >
+    path={{ graphite_storage }}
+    owner=www-data
+    group=carbon
+    mode=0775
+    state=directory
+  tags:
+    - graphite
+    - permissions
+
+- name: Set permissions on graphite whisper
+  file: >
+    path={{ graphite_storage}}/whisper
+    owner=carbon
+    recurse=yes
+    state=directory
+  tags:
+    - graphite
+    - permissions
+
+- name: Ensure graphite apache2 log directory exists
+  file: >
+    path={{ graphite_storage}}/log/apache2
+    owner=www-data
+    state=directory
+  tags:
+    - graphite
+    - permissions
+
+- name: Set permissions on graphite log
+  file: >
+    path={{ graphite_storage}}/log
+    owner=www-data
+    recurse=yes
+    state=directory
+  tags:
+    - graphite
+    - permissions
+
+- name: Start carbon cache service
+  command: "{{ graphite_home }}/bin/carbon-cache.py start"
+  tags:
+    - graphite
+    - services

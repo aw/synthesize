@@ -1,0 +1,19 @@
+# Apache role
+
+- name: Copy Apache templates from Synthesize
+  copy: >
+    src=../templates/apache/graphite.conf
+    dest=/etc/apache2/sites-available/graphite
+  tags:
+    - apache
+    - config
+
+- name: Setup the correct Apache site and modules
+  command: "{{ item }}"
+  with_items:
+    - a2dissite 000-default
+    - a2ensite graphite
+    - a2enmod ssl
+  tags:
+    - apache
+    - config

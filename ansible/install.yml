@@ -1,0 +1,20 @@
+# Install Graphite and StatsD using Ansible
+
+- hosts: graphite
+  gather_facts: true
+  sudo: true
+  roles:
+    - graphite
+    - statsite
+    - apache
+    - collectd
+  tasks:
+    - name: Start our processes
+      service: name={{ item }} state=restarted
+      with_items:
+        - memcached
+        - collectd
+        - apache2
+      tags:
+        - graphite
+        - services

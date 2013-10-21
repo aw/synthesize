@@ -1,0 +1,9 @@
+# Collectd role
+
+- name: Copy Collectd templates from Synthesize
+  copy: >
+    src=../templates/collectd/collectd.conf
+    dest=/etc/collectd/collectd.conf
+  tags:
+    - apache
+    - config
