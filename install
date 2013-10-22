@@ -40,7 +40,7 @@ mkdir ${GRAPHITE_CONF}/examples
 mv ${GRAPHITE_CONF}/*.example ${GRAPHITE_CONF}/examples/
 cp ${SYNTHESIZE_HOME}/templates/graphite/conf/* ${GRAPHITE_CONF}/
 cp ${SYNTHESIZE_HOME}/templates/collectd/collectd.conf /etc/collectd/
-cp ${SYNTHESIZE_HOME}/templates/apache/graphite.conf /etc/apache2/sites-available/
+cp ${SYNTHESIZE_HOME}/templates/apache/graphite.conf /etc/apache2/sites-available/graphite
 
 # Setup the correct Apache site and modules
 a2dissite 000-default
