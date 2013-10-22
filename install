@@ -10,8 +10,9 @@ GRAPHITE_CONF="${GRAPHITE_HOME}/conf"
 GRAPHITE_STORAGE="${GRAPHITE_HOME}/storage"
 
 if [[ ! $UBUNTU_RELEASE =~ 'Ubuntu 13.10' ]]; then
-  echo "Sorry, this is only supported for Ubuntu Linux 13.10."
-  exit 1
+	GRAPHITE_CONF_FILE="graphite"
+else
+	GRAPHITE_CONF_FILE="graphite.conf"
 fi
 if [[ -d $GRAPHITE_HOME ]]; then
   echo "Looks like you already have a Graphite installation in ${GRAPHITE_HOME}, aborting."
@@ -40,7 +41,7 @@ mkdir ${GRAPHITE_CONF}/examples
 mv ${GRAPHITE_CONF}/*.example ${GRAPHITE_CONF}/examples/
 cp ${SYNTHESIZE_HOME}/templates/graphite/conf/* ${GRAPHITE_CONF}/
 cp ${SYNTHESIZE_HOME}/templates/collectd/collectd.conf /etc/collectd/
-cp ${SYNTHESIZE_HOME}/templates/apache/graphite.conf /etc/apache2/sites-available/graphite
+cp ${SYNTHESIZE_HOME}/templates/apache/graphite.conf /etc/apache2/sites-available/${GRAPHITE_CONF_FILE}
 
 # Setup the correct Apache site and modules
 a2dissite 000-default
