@@ -46,7 +46,6 @@ cp ${SYNTHESIZE_HOME}/templates/apache/graphite.conf /etc/apache2/sites-availabl
 a2dissite 000-default
 a2ensite graphite
 a2enmod ssl
-a2enmod socache_shmcb
 
 # Install configuration files for Django
 cd ${GRAPHITE_HOME}/webapp/graphite
