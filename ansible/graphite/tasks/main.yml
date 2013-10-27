@@ -37,7 +37,7 @@
 - name: Clone Graphite repos from GitHub
   git: >
     repo=https://github.com/graphite-project/{{ item }}
-    version={{ graphite_version }}
+    version={{ graphite_release }}
     dest={{ graphite_repos }}/{{ item }}
   with_items:
     - whisper

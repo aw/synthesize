@@ -4,4 +4,4 @@ graphite_home: /opt/graphite
 graphite_repos: /usr/local/src
 graphite_conf: "{{ graphite_home }}/conf"
 graphite_storage: "{{ graphite_home }}/storage"
-graphite_version: 0.9.12
+graphite_release: 0.9.12
