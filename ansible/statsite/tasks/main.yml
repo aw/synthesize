@@ -26,8 +26,10 @@
     - statsite
     - config
 
-- name: Start statsite service
-  shell: /usr/local/sbin/statsite -f /etc/statsite.conf
+- name: Copy Statsite init script from Synthesize
+  copy: >
+    src=../templates/init/statsite.conf
+    dest=/etc/init/statsite.conf
   tags:
     - statsite
-    - services
+    - init

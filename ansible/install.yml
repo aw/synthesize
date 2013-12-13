@@ -12,9 +12,11 @@
     - name: Start our processes
       service: name={{ item }} state=restarted
       with_items:
+        - carbon
         - memcached
         - collectd
         - apache2
+        - statsite
       tags:
         - graphite
         - services

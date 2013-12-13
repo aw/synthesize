@@ -101,6 +101,15 @@
     - graphite
     - config
 
+- name: Copy Carbon init script from Synthesize
+  copy: >
+    src=../templates/init/carbon.conf
+    dest=/etc/init/carbon.conf
+  tags:
+    - graphite
+    - carbon
+    - init
+
 - name: Copy Django templates from Synthesize
   copy: >
     src=../templates/graphite/webapp/{{ item }}
@@ -199,9 +208,3 @@
   tags:
     - graphite
     - permissions
-
-- name: Start carbon cache service
-  command: "{{ graphite_home }}/bin/carbon-cache.py start"
-  tags:
-    - graphite
-    - services
